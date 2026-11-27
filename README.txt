@@ -26,7 +26,7 @@ The first launches are slow, later ones fast
   startup reads in the order the game needs them. From the next launch on they come from
   that one file, which matters most on a hard disk. On the PC it was tuned on (a 5400 rpm
   disk), that took the world from 9+ minutes to about 3.3 minutes.
-- In the world, expect about 15 fps on an RTX 4060 class PC, with a slower first minute
+- In the world, expect about 15+ fps on an RTX 4060 class PC, with a slower first minute (I was locked to about 15 due to being stuck on an SSD)
   while the scene streams in. Work on the frame rate is ongoing.
 - F11 or Alt+Enter switches fullscreen.
 
