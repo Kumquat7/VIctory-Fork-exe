@@ -73,7 +73,7 @@ if ($menu.Contains('VICTORY_MENU_FRAMEGEN')) {
 if ($menu['VICTORY_MENU_FPS'] -match '^\d+$' -and [int]$menu['VICTORY_MENU_FPS'] -ge 1 -and [int]$menu['VICTORY_MENU_FPS'] -le 1000) { $fpsWanted = [int]$menu['VICTORY_MENU_FPS'] }
 $settings = @{
     # Submission and copy machinery
-    VICTORY_THIN = '1'; VICTORY_JOIN_PARTS = '8'; VICTORY_RELAY = '2'; VICTORY_RELAY_COPY = '1'; VICTORY_WIDE_BACK = '1'
+    VICTORY_THIN = '1'; VICTORY_JOIN_PARTS = '16'; VICTORY_RELAY = '2'; VICTORY_RELAY_COPY = '1'; VICTORY_WIDE_BACK = '1'
     VICTORY_CARD_REHASH_RUNS = '1'; VICTORY_JOIN_COPIES = '1'; VICTORY_CARD_STEPS = '2'; VICTORY_CARD_AWAKE = '1'
     VICTORY_CARD_BUFFERS_MIN_KB = '64'; VICTORY_INDIRECT_WINDOW = '1'; VICTORY_INDIRECT_BATCH = '2'
     VICTORY_UPLOAD_AHEAD = '1'; VICTORY_SHOW_AFTER = '1'; VICTORY_MAP_THREADS = '1'
@@ -86,6 +86,10 @@ $settings = @{
     VICTORY_TEXTURE_STAGE_MS = '16'; VICTORY_LEVELS_ON_DEMAND = '0'
     VICTORY_PRELUDE_UPLOADS = '1'; VICTORY_SHOW_NEW_LATER = '1'; VICTORY_POOL_SMALL = '0'; VICTORY_TABLED_REREAD = '1'
     VICTORY_QUEUE_HOST_TEXTURES = '0'
+    # Textures refreshed in order on one thread: the multi-thread refresh left white "deep-fried" blotches on clothing
+    VICTORY_WIDE_TEXTURES = '0'
+    # The submitting thread and its helpers above normal priority, submission parts joined up to 16 (run m13: 13.2 fps)
+    VICTORY_HELPER_PRIORITY = '1'
     # Descriptor heaps' records
     VICTORY_HEAP_SYNC_FIRST = '1'; VICTORY_SYNC_IN_PLACE = '1'; VICTORY_SPANS_QUICK = '1'; VICTORY_SYNC_FINE = '1'
     VICTORY_HEAP_SYNC_AT_SUBMIT = '1'
