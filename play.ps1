@@ -5,7 +5,8 @@
 #   .\play.ps1 -Exe 'D:\MyDump\game_scarlett_master.exe'
 #   .\play.ps1 -Exe ... -Dlss off            the title's own upscaling, no DLSS
 #   .\play.ps1 -Exe ... -Dlss balanced -FrameGen
-#   .\play.ps1 -Exe ... -Low:$false          the settings for PCs with more memory
+#   .\play.ps1 -Exe ... -NoLow               the settings for PCs with more memory (or -Low:$false)
+#   .\play.ps1 -Exe ... -FrameGen / -NoFrameGen   frame generation on or off at this start
 #   .\play.ps1 -Exe ... -More @{VICTORY_AMBIENT_SPECULAR='0'}   add or override switches
 #
 # In the game, F1 opens a settings menu (arrow keys pick and change, Enter does it). What it saves goes to
@@ -24,6 +25,9 @@ param(
     [ValidateSet('off', 'dlaa', 'quality', 'balanced', 'performance')][string]$Dlss = 'quality',
     # DLSS Frame Generation (RTX 40 or later, hardware-accelerated GPU scheduling on); needs DLSS.
     [switch]$FrameGen,
+    # Frame generation off at this start. -FrameGen and -NoFrameGen (Play-VIctory.cmd asks which at every start)
+    # stand over what the F1 menu saved.
+    [switch]$NoFrameGen,
     # Frames shown for each one rendered with -FrameGen: 2 to 6 (more than 2 needs an RTX 50; the layer asks the
     # driver how many this card does and gives no more).
     [ValidateRange(2, 6)][int]$FrameGenX = 2,
@@ -33,19 +37,22 @@ param(
     # Frames begin every 1/Fps s whatever the title asks (it asks 1/30). 1000, the default: no cap, a frame
     # begins as soon as the last is done. 30: the title's own rate.
     [ValidateRange(1, 1000)][int]$Fps = 1000,
-    # For a PC with 16 GB of RAM and an 8 GB card (on by itself under 24 GB of RAM; -Low:$false turns it off):
+    # For a PC with 16 GB of RAM and an 8 GB card (on by itself under 24 GB of RAM; -NoLow turns it off):
     # Series S (7.6 GB of title memory instead of 13.5), frame generation not made ready (its ~0.8 GB of the
     # card goes to the title's copies instead of to the PC's RAM), and window copies in the card's memory
     # through Resizable BAR (VICTORY_WINDOWS_BAR_MB=3072). Measured on an RTX 4060 8 GB, 16 GB, 5400 rpm disk
     # (run m08): world at 2.3 min, about 10 fps walking in the first scene, against 2-8 fps paging without it.
     [switch]$Low,
+    # Not the low-memory settings, whatever the RAM (the same as -Low:$false, which Play-VIctory.cmd cannot pass on).
+    [switch]$NoLow,
     [hashtable]$More = @{}
 )
 $repo = $PSScriptRoot   # this portable folder
-if (-not $PSBoundParameters.ContainsKey('Low')) {
+if ($NoLow) { $Low = $false }
+elseif (-not $PSBoundParameters.ContainsKey('Low')) {
     $ramGb = (Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB
     $Low = $ramGb -lt 24
-    if ($Low) { Write-Host ("{0:N0} GB of RAM: the low-memory settings (-Low; -Low:`$false for the others)" -f $ramGb) }
+    if ($Low) { Write-Host ("{0:N0} GB of RAM: the low-memory settings (-Low; -NoLow for the others)" -f $ramGb) }
 }
 if ($Low) {
     if (-not $PSBoundParameters.ContainsKey('SeriesS')) { $SeriesS = $true }
@@ -65,10 +72,14 @@ if ($menu.Contains('VICTORY_MENU_CONSOLE')) { $SeriesS = $menu['VICTORY_MENU_CON
 if ($menu['VICTORY_MENU_RES'] -in '1440', '1080to1440', '4k') { $Res = $menu['VICTORY_MENU_RES'] }
 if ($menu['VICTORY_MENU_DLSS'] -in 'off', 'dlaa', 'quality', 'balanced', 'performance') { $Dlss = $menu['VICTORY_MENU_DLSS'] }
 $timesWanted = $FrameGenX
-if ($menu.Contains('VICTORY_MENU_FRAMEGEN')) {
+if ($NoFrameGen) { $FrameGen = $false }
+if ($menu.Contains('VICTORY_MENU_FRAMEGEN') -and -not ($PSBoundParameters.ContainsKey('FrameGen') -or $NoFrameGen)) {
     # 0: off; 2 to 6: that many frames shown for each one rendered (1, from an older file: 2).
     $FrameGen = $menu['VICTORY_MENU_FRAMEGEN'] -match '^[1-6]$'
     if ($menu['VICTORY_MENU_FRAMEGEN'] -match '^[2-6]$') { $timesWanted = [int]$menu['VICTORY_MENU_FRAMEGEN'] }
+} elseif ($FrameGen -and -not $PSBoundParameters.ContainsKey('FrameGenX') -and $menu['VICTORY_MENU_FRAMEGEN'] -match '^[2-6]$') {
+    # On at this start (-FrameGen): as many frames for each one rendered as the menu last saved.
+    $timesWanted = [int]$menu['VICTORY_MENU_FRAMEGEN']
 }
 if ($menu['VICTORY_MENU_FPS'] -match '^\d+$' -and [int]$menu['VICTORY_MENU_FPS'] -ge 1 -and [int]$menu['VICTORY_MENU_FPS'] -le 1000) { $fpsWanted = [int]$menu['VICTORY_MENU_FPS'] }
 $settings = @{

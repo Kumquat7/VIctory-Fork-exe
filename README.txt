@@ -24,6 +24,12 @@ Start
 3. The first time, it offers to download NVIDIA's DLSS files from NVIDIA's own GitHub
    (about 70 MB, into nvidia-sdk here). Say Y: without them the game falls back to its
    own upscaling, which looks much rougher. Get-NVIDIA-DLSS.cmd does the same later.
+4. At every start it asks "Use frame generation this time [Y,N]?". Frame generation
+   adds a frame between each two the game draws, so motion looks smoother, but input
+   lags a little more. It needs an RTX 40 card or newer, and on a 16 GB PC it takes
+   some memory from the game. Your answer counts for that start, over what the F1 menu
+   saved. To skip the question, set VICTORY_ASK_FRAMEGEN=0; the F1 menu's choice then
+   counts.
 
 The first launch is slow, later ones fast
 -----------------------------------------
@@ -58,7 +64,9 @@ Change a setting
 ----------------
 Options go after Play-VIctory.cmd in a Command Prompt, for example:
     Play-VIctory.cmd -Dlss balanced
-    Play-VIctory.cmd -Low:$false       the settings for PCs with more memory
+    Play-VIctory.cmd -NoLow            the settings for PCs with more memory
+    Play-VIctory.cmd -FrameGen         frame generation on, without the question
+    Play-VIctory.cmd -NoFrameGen       frame generation off, without the question
 play.ps1 lists every option at its top.
 
 Files
